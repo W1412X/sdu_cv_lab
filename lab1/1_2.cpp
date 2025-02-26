@@ -4,6 +4,7 @@ using namespace std;
 int main(int argc, char** argv){
     if(argc!=3){
         cout<<"Usage:./1_2 ori_path background_path"<<endl;
+        return 0; 
     }
     string ori_path=argv[1];
     string background_path=argv[2];
@@ -28,14 +29,32 @@ int main(int argc, char** argv){
     cv::resize(background,background,img.size());
     cv::Mat alpha_mat;
     alpha_channel.convertTo(alpha_mat,CV_32F,1.0/255);
-
     //create the foreground img without the alpha channel
     cv::Mat foreground;
-    cv::Mat rgb_part[3];
-    cv::split(img,rgb_part);
-    cv::merge(rgb_part,3,foreground);
-    cv::Mat result = foreground.mul(alpha_mat) + background.mul(1 - alpha_mat);
-    cv::imshow("Final Image", result);
+    vector<cv::Mat>bgr_fore(3);
+    vector<cv::Mat>bgr_back(3);
+    //here split the img to rgb 
+    cv::split(img,bgr_fore);
+    cv::split(background,bgr_back);
+    vector<cv::Mat>result(3);
+    for(int i=0;i<3;i++){
+        cv::Mat fore = bgr_fore[i].clone();
+        cv::Mat back = bgr_back[i].clone();
+        cv::Mat alpha = alpha_mat.clone();
+        fore.convertTo(fore, CV_32F);
+        back.convertTo(back, CV_32F);
+        alpha.convertTo(alpha, CV_32F);
+        cv::Mat mul_fore = fore.mul(alpha);
+        cv::Mat mul_back = back.mul(cv::Scalar(1.0) - alpha); 
+        cv::Mat result_part;
+        mul_fore.convertTo(mul_fore, CV_32F);
+        mul_back.convertTo(mul_back, CV_32F);
+        result_part = mul_fore + mul_back;
+        result_part.convertTo(result[i], bgr_fore[i].type());
+    }
+    cv::Mat final;
+    cv::merge(result,final);
+    cv::imshow("Final Image", final);
     cv::waitKey(0);
 
 
