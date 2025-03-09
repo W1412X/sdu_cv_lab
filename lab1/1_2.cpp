@@ -37,6 +37,7 @@ int main(int argc, char** argv){
     cv::split(img,bgr_fore);
     cv::split(background,bgr_back);
     vector<cv::Mat>result(3);
+    auto start_time = chrono::high_resolution_clock::now();
     for(int i=0;i<3;i++){
         cv::Mat fore = bgr_fore[i].clone();
         cv::Mat back = bgr_back[i].clone();
@@ -52,6 +53,9 @@ int main(int argc, char** argv){
         result_part = mul_fore + mul_back;
         result_part.convertTo(result[i], bgr_fore[i].type());
     }
+    auto end_time = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end_time - start_time;
+    cout << "Time : " << duration.count() << " seconds" << endl;
     cv::Mat final;
     cv::merge(result,final);
     cv::imshow("Final Image", final);
